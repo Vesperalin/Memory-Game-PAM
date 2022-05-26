@@ -1,0 +1,28 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.small-card-grid {
+  display: grid;
+  margin: 20px 80px 20px 80px;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  grid-gap: 20px;
+  max-width: 700px;
+}
+
+.medium-card-grid {
+  display: grid;
+  margin: 20px 100px 20px 100px;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  grid-gap: 20px;
+  max-width: 700px;
+}
+
+.hard-card-grid {
+  display: grid;
+  margin: 20px 100px 20px 100px;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+  grid-gap: 20px;
+}
