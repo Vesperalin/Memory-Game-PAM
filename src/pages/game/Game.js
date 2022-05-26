@@ -1,5 +1,8 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
+import AOS from 'aos';
+import 'aos/dist/aos.css';
+import useSound from 'use-sound';
 
 import style from './Game.module.scss';
 import coverImage from '../../assets/cover.jpg';
@@ -20,6 +23,7 @@ import image14 from '../../assets/monsters-14.png';
 import image15 from '../../assets/monsters-15.png';
 import image16 from '../../assets/monsters-16.png';
 import Card from '../../components/card/Card';
+import matchSound from '../../assets/match.mp3';
 
 const cardImages = [
 	{ src: image1, number: 1, matched: false },
@@ -58,6 +62,8 @@ const Game = ({ level }) => {
 	const [disabled, setDisabled] = useState(false);
 	const [choiceOne, setChoiceOne] = useState(null);
 	const [choiceTwo, setChoiceTwo] = useState(null);
+	const [playMatch] = useSound(matchSound);
+	AOS.init();
 
 	useEffect(() => {
 		let shuffledCards = cardImages.sort(() => Math.random() - 0.5);
@@ -85,6 +91,7 @@ const Game = ({ level }) => {
 		if (choiceOne && choiceTwo) {
 			setDisabled(true);
 			if (choiceOne.number === choiceTwo.number) {
+				playMatch();
 				setCards(prevCards => {
 					return prevCards.map(card => {
 						if (card.number === choiceOne.number) {
@@ -100,7 +107,7 @@ const Game = ({ level }) => {
 				setTimeout(() => resetTurns(), 1000);
 			}
 		}
-	}, [choiceOne, choiceTwo]);
+	}, [choiceOne, choiceTwo, playMatch]);
 
 	let cardStyle = '';
 	if (level === 4) {
@@ -112,7 +119,14 @@ const Game = ({ level }) => {
 	}
 
 	return (
-		<div className={style['wrapper']}>
+		<div
+			className={style['wrapper']}
+			data-aos='fade-up'
+			data-aos-delay='50'
+			data-aos-duration='400'
+			data-aos-easing='ease-in-out'
+			data-aos-once='true'
+		>
 			<h1>Game: {level}</h1>
 			<div className={style[cardStyle]}>
 				{cards.length > 0 &&

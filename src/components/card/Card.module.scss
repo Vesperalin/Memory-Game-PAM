@@ -1,16 +1,24 @@
 .card {
   position: relative;
 
-  .back {
+  &:hover, &:focus {
     cursor: pointer;
+    transform: scale(1.03);
+  }
+  
+  .front {
+    &:hover,
+      &:focus {
+        cursor: default;
+      }
   }
 
   img {
+    border: 2px solid #fff;
+    border-radius: 5px;
     display: block;
     width: 100%;
-    border: 2px solid #fff;
-    border-radius: 2px;
-    background-color: rgb(186, 186, 186);
+    background-color: rgb(231, 231, 231);
   }
 }
 
