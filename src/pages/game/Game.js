@@ -3,8 +3,11 @@ import { useState, useEffect } from 'react';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
 import useSound from 'use-sound';
+import { useStopwatch } from 'react-timer-hook';
+import { useNavigate } from 'react-router-dom';
 
 import style from './Game.module.scss';
+import buttonStyle from '../../styles/Button.module.scss';
 import coverImage from '../../assets/cover.jpg';
 import image1 from '../../assets/monsters-01.png';
 import image2 from '../../assets/monsters-02.png';
@@ -24,6 +27,7 @@ import image15 from '../../assets/monsters-15.png';
 import image16 from '../../assets/monsters-16.png';
 import Card from '../../components/card/Card';
 import matchSound from '../../assets/match.mp3';
+import Modal from '../../components/modal/Modal';
 
 const cardImages = [
 	{ src: image1, number: 1, matched: false },
@@ -63,7 +67,18 @@ const Game = ({ level }) => {
 	const [choiceOne, setChoiceOne] = useState(null);
 	const [choiceTwo, setChoiceTwo] = useState(null);
 	const [playMatch] = useSound(matchSound);
+	const [isGameStopped, setGameIsStopped] = useState(false);
+	const [showModal, setShowModal] = useState(false);
+	const [wasClosed, setWasClosed] = useState(false);
+	const navigate = useNavigate();
+	const { seconds, minutes, hours, pause } = useStopwatch({
+		autoStart: true,
+	});
 	AOS.init();
+
+	const hourTime = hours < 10 ? `0${hours}` : `${hours}`;
+	const secondTime = seconds < 10 ? `0${seconds}` : `${seconds}`;
+	const minuteTime = minutes < 10 ? `0${minutes}` : `${minutes}`;
 
 	useEffect(() => {
 		let shuffledCards = cardImages.sort(() => Math.random() - 0.5);
@@ -101,13 +116,24 @@ const Game = ({ level }) => {
 						}
 					});
 				});
-
 				resetTurns();
 			} else {
 				setTimeout(() => resetTurns(), 1000);
 			}
 		}
 	}, [choiceOne, choiceTwo, playMatch]);
+
+	useEffect(() => {
+		if (cards[0] !== undefined && !wasClosed) {
+			const notMatchedCards = cards.filter(card => card.matched === false);
+
+			if (notMatchedCards.length === 0) {
+				setGameIsStopped(true);
+				setShowModal(true);
+				pause();
+			}
+		}
+	}, [cards, pause]);
 
 	let cardStyle = '';
 	if (level === 4) {
@@ -118,6 +144,20 @@ const Game = ({ level }) => {
 		cardStyle = 'hard-card-grid';
 	}
 
+	const message = (
+		<>
+			<p>
+				Your time is: {hourTime}:{minuteTime}:{secondTime}
+			</p>
+			<p>You made: {turns} moves</p>
+		</>
+	);
+
+	const onModalClick = () => {
+		setShowModal(false);
+		setWasClosed(true);
+	};
+
 	return (
 		<div
 			className={style['wrapper']}
@@ -127,7 +167,13 @@ const Game = ({ level }) => {
 			data-aos-easing='ease-in-out'
 			data-aos-once='true'
 		>
-			<h1>Game: {level}</h1>
+			{showModal && <Modal title={'You won!'} message={message} onClick={onModalClick} />}
+			<div className={style['data-wrapper']}>
+				<p>
+					Time: {hourTime}:{minuteTime}:{secondTime}
+				</p>
+				<p>Moves: {turns}</p>
+			</div>
 			<div className={style[cardStyle]}>
 				{cards.length > 0 &&
 					cards.map(card => (
@@ -141,6 +187,9 @@ const Game = ({ level }) => {
 						/>
 					))}
 			</div>
+			<button onClick={() => navigate('/')} className={buttonStyle.button}>
+				{isGameStopped ? 'Back' : 'Give up!'}
+			</button>
 		</div>
 	);
 };
