@@ -5,6 +5,7 @@ import 'aos/dist/aos.css';
 import useSound from 'use-sound';
 import { useStopwatch } from 'react-timer-hook';
 import { useNavigate } from 'react-router-dom';
+import { Fireworks } from 'fireworks/lib/react';
 
 import style from './Game.module.scss';
 import buttonStyle from '../../styles/Button.module.scss';
@@ -27,6 +28,7 @@ import image15 from '../../assets/monsters-15.png';
 import image16 from '../../assets/monsters-16.png';
 import Card from '../../components/card/Card';
 import matchSound from '../../assets/match.mp3';
+import fanfareSound from '../../assets/fanfare.mp3';
 import Modal from '../../components/modal/Modal';
 
 const cardImages = [
@@ -67,6 +69,7 @@ const Game = ({ level }) => {
 	const [choiceOne, setChoiceOne] = useState(null);
 	const [choiceTwo, setChoiceTwo] = useState(null);
 	const [playMatch] = useSound(matchSound);
+	const [playFanfare] = useSound(fanfareSound);
 	const [isGameStopped, setGameIsStopped] = useState(false);
 	const [showModal, setShowModal] = useState(false);
 	const [wasClosed, setWasClosed] = useState(false);
@@ -106,7 +109,7 @@ const Game = ({ level }) => {
 		if (choiceOne && choiceTwo) {
 			setDisabled(true);
 			if (choiceOne.number === choiceTwo.number) {
-				playMatch();
+				setTimeout(() => playMatch(), 400);
 				setCards(prevCards => {
 					return prevCards.map(card => {
 						if (card.number === choiceOne.number) {
@@ -131,9 +134,10 @@ const Game = ({ level }) => {
 				setGameIsStopped(true);
 				setShowModal(true);
 				pause();
+				setTimeout(() => playFanfare(), 1000);
 			}
 		}
-	}, [cards, pause]);
+	}, [cards, pause, playFanfare]);
 
 	let cardStyle = '';
 	if (level === 4) {
@@ -153,9 +157,53 @@ const Game = ({ level }) => {
 		</>
 	);
 
+	const saveResults = () => {
+		const result = {
+			time: parseInt(secondTime) + 60 * parseInt(minuteTime) + 60 * 60 * parseInt(hourTime),
+			moves: turns,
+		};
+		const timeResults = JSON.parse(localStorage.getItem('timeResults'));
+		const movesResults = JSON.parse(localStorage.getItem('movesResults'));
+
+		if (level === 4) {
+			timeResults.easy.push(result);
+			movesResults.easy.push(result);
+
+			timeResults.easy = timeResults.easy.sort((a, b) => a.time - b.time).slice(0, 5);
+			movesResults.easy = movesResults.easy.sort((a, b) => a.moves - b.moves).slice(0, 5);
+		} else if (level === 8) {
+			timeResults.medium.push(result);
+			movesResults.medium.push(result);
+
+			timeResults.medium = timeResults.medium.sort((a, b) => a.time - b.time).slice(0, 5);
+			movesResults.medium = movesResults.medium.sort((a, b) => a.moves - b.moves).slice(0, 5);
+		} else {
+			timeResults.hard.push(result);
+			movesResults.hard.push(result);
+
+			timeResults.hard = timeResults.hard.sort((a, b) => a.time - b.time).slice(0, 5);
+			movesResults.hard = movesResults.hard.sort((a, b) => a.moves - b.moves).slice(0, 5);
+		}
+
+		localStorage.setItem('timeResults', JSON.stringify(timeResults));
+		localStorage.setItem('movesResults', JSON.stringify(movesResults));
+	};
+
 	const onModalClick = () => {
 		setShowModal(false);
 		setWasClosed(true);
+		saveResults();
+	};
+
+	let fxProps = {
+		count: 3,
+		interval: 300,
+		colors: ['#30043d', '#7b096a', '#ccc89f'],
+		calc: (props, i) => ({
+			...props,
+			x: (i + 1) * (window.innerWidth / 3) - (i + 1) * 100,
+			y: 200 + Math.random() * 100 - 50 + (i === 2 ? -80 : 0),
+		}),
 	};
 
 	return (
@@ -167,7 +215,12 @@ const Game = ({ level }) => {
 			data-aos-easing='ease-in-out'
 			data-aos-once='true'
 		>
-			{showModal && <Modal title={'You won!'} message={message} onClick={onModalClick} />}
+			{showModal && (
+				<>
+					<Fireworks {...fxProps} />
+					<Modal title={'You won!'} message={message} onClick={onModalClick} />
+				</>
+			)}
 			<div className={style['data-wrapper']}>
 				<p>
 					Time: {hourTime}:{minuteTime}:{secondTime}

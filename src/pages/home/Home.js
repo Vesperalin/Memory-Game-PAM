@@ -48,6 +48,14 @@ const Home = () => {
 				>
 					Hard
 				</NavLink>
+				<NavLink
+					onMouseEnter={() => play()}
+					onMouseLeave={() => stop()}
+					className={buttonStyle.button}
+					to='/ranking'
+				>
+					Ranking
+				</NavLink>
 			</nav>
 			<div className={style['wave-wrapper']}>
 				<Wave
